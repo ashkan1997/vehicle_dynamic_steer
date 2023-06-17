@@ -15,6 +15,14 @@ function dataAnalysis(model_sim,vehicle_data,Ts)
     m  = vehicle_data.vehicle.m;   % [kg] Vehicle Mass
     g  = vehicle_data.vehicle.g;   % [m/s^2] Gravitational acceleration
     tau_D = vehicle_data.steering_system.tau_D;  % [-] steering system ratio (pinion-rack)
+    h_rr = vehicle_data.front_suspension.h_rc_f;
+    h_rf = vehicle_data.rear_suspension.h_rc_r;
+    h_r = h_rr + (h_rf - h_rr)*Lr/(L);
+    h_s = vehicle_data.vehicle.hGs;
+    h_G = h_r + h_s;
+    Ks_f = vehicle_data.front_suspension.Ks_f;
+    Ks_r = vehicle_data.rear_suspension.Ks_r;
+    eps_roll = (Ks_f)/(Ks_f + Ks_r);
 
     % ---------------------------------
     %% Extract data from simulink model
@@ -114,6 +122,28 @@ function dataAnalysis(model_sim,vehicle_data,Ts)
     % Desired sinusoidal steering angle for the equivalent single track front wheel
     desired_steer_atWheel = delta_D/tau_D;
 
+    %----------------------------
+    % Lateral load transfer
+    %----------------------------
+    alpha_r = (alpha_rr + alpha_rl)/2;
+    alpha_f = (alpha_fr + alpha_fl)/2;
+    Fy_r = (Fy_rr + Fy_rl );
+    Fy_f = (Fy_fr + Fy_fl) ;
+    
+    
+    delta_Fz_r_theory = m * Ay * (((Lf*h_rr)/(L*Wr)) + (h_s/Wr)*eps_roll);
+    delta_Fz_r_act = (Fz_rr - Fz_rl)/2;
+
+    delta_Fz_f_theory = m * Ay * (((Lr*h_rf)/(L*Wf)) + (h_s/Wf)*(1-eps_roll));
+    delta_Fz_f_act = (Fz_fr - Fz_fl)/2;
+
+    %----------------------------
+    % Axle characteristics
+    %----------------------------
+    Fz_r = Fz_rl + Fz_rr;
+    Fz_f = Fz_fl + Fz_fr;
+    mu_f = Fy_f./Fz_f;
+    mu_r = Fy_r./Fz_r;
 
     % ---------------------------------
     %% PLOTS
@@ -556,6 +586,104 @@ function dataAnalysis(model_sim,vehicle_data,Ts)
     end
     grid on
     hold off
+    
+
+    % -------------------------------
+    %% Plot lateral load transfer
+    % -------------------------------
+    
+    % alpha_r = (alpha_rr + alpha_rl)/2;
+    % alpha_f = (alpha_fr + alpha_fl)/2;
+    % Fy_r = (Fy_rr + Fy_rl )/ 2;
+    % Fy_f = (Fy_fr + Fy_fl) / 2;
+    % 
+    % 
+    % delta_Fz_r_theory = m * Ay * (((Lf*h_rr)/(L*Wr)) + (h_s/Wr)*eps_roll);
+    % delta_Fz_r_act = (Fz_rr - Fz_rl)/2;
+    % 
+    % delta_Fz_f_theory = m * Ay * (((Lr*h_rf)/(L*Wf)) + (h_s/Wf)*(1-eps_roll));
+    
+    % delta_Fz_f_act = (Fz_fr - Fz_fl)/2;
+
+
+    alpha_r_lin = linspace(0 , max(alpha_r) , length(mu_r));
+    alpha_f_lin = linspace(0 , max(alpha_f) , length(mu_r));
+   
+    figure('Name' , ' lateral load transfer - Rear'), clf
+    ax(1) = subplot(221);
+    plot( alpha_r_lin , Fy_rr , 'DisplayName','Rear right')
+    hold on
+    plot( alpha_r_lin , Fy_rl , 'DisplayName','Rear left')
+    hold on
+    plot( alpha_r_lin , Fy_r , 'DisplayName','Rear axel')
+    grid on
+    xlabel('t')
+    ylabel('$F_{y}$ [N]')
+    legend
+    title('Rear wheel')
+
+    ax(2) = subplot(222);
+
+    plot( alpha_f_lin , Fy_fr , 'DisplayName','front right')
+    hold on
+    plot( alpha_f_lin , Fy_fl , 'DisplayName','front left')
+    hold on
+    plot( alpha_f_lin , Fy_f , 'DisplayName','front axel')
+    grid on
+    xlabel('t')
+    ylabel('$F_{y}$ [N]')
+    legend
+    title('front wheel')
+
+    ax(3) = subplot(223);
+
+    plot( alpha_f_lin , delta_Fz_f_act , 'DisplayName','front experienced data ')
+    hold on
+    % plot( alpha_f_lin , delta_Fz_f_theory , 'DisplayName','front theory')
+    % grid on
+    xlabel('$\alpha$ []')
+    ylabel('$\delta F_{z}$ [N]')
+    legend
+    title('front Axel')
+
+    ax(3) = subplot(224);
+
+    plot( alpha_r_lin , delta_Fz_r_act , 'DisplayName','rear experienced data ')
+    hold on
+    % plot( alpha_r_test , delta_Fz_r_theory , 'DisplayName','rear theory')
+    % grid on
+    xlabel('$\alpha$ []')
+    ylabel('$\delta F_{z}$[N]')
+    legend
+    title('rear Axel')
+
+
+    % linkaxes(ax,'x')
+    clear ax
+    
+    % -------------------------------
+    %% axle characteristics
+    % -------------------------------
+
+    mu_f = Ay/g;
+    mu_r = Ay/g;
+    alpha_r_lin = length(mu_r);
+    alpha_f_lin = length(mu_f);
+
+
+    figure('Name', 'Axle characteristics')
+
+    % ax(1) = subplot(211);
+    plot(alpha_r_lin , mu_r , 'DisplayName', 'Rear')
+    hold on
+    plot(alpha_f_lin , mu_f , 'DisplayName', 'Front')
+    hold on
+    xlabel('$\alpha_{r}$ , $\alpha_{f}$')
+    ylabel('$\mu_{r}$ , $\mu_{f}$')
+    legend
+    title('Axle characteristics')
+
+
     
 end
     
