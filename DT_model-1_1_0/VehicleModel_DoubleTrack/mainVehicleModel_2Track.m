@@ -59,7 +59,7 @@ fprintf('The total simulation time was %.2f seconds\n',elapsed_time_simulation)
 % ----------------------------
 %% Post-Processing
 % ----------------------------
-clc
+% clc
 close all
 dataAnalysis(model_sim,vehicle_data,Ts);
 % vehicleAnimation(model_sim,vehicle_data,Ts);

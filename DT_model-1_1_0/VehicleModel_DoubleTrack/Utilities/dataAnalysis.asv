@@ -108,6 +108,7 @@ function dataAnalysis(model_sim,vehicle_data,Ts)
     dot_u_filt = filtfilt(b_butt,a_butt,dot_u);  
     % Steady state lateral acceleration
     Ay_ss = Omega.*u;
+    Ay_filt = filtfilt(b_butt,a_butt,Ay_ss); 
     % Longitudinal jerk [m/s^3]
     jerk_x = diff(dot_u)/Ts;
 
@@ -127,8 +128,8 @@ function dataAnalysis(model_sim,vehicle_data,Ts)
     %----------------------------
     alpha_r = (alpha_rr + alpha_rl)/2;
     alpha_f = (alpha_fr + alpha_fl)/2;
-    Fy_r = (Fy_rr + Fy_rl )/ 2;
-    Fy_f = (Fy_fr + Fy_fl) / 2;
+    Fy_r = (Fy_rr + Fy_rl );
+    Fy_f = (Fy_fr + Fy_fl) ;
     
     
     delta_Fz_r_theory = m * Ay * (((Lf*h_rr)/(L*Wr)) + (h_s/Wr)*eps_roll);
@@ -602,53 +603,58 @@ function dataAnalysis(model_sim,vehicle_data,Ts)
     % delta_Fz_r_act = (Fz_rr - Fz_rl)/2;
     % 
     % delta_Fz_f_theory = m * Ay * (((Lr*h_rf)/(L*Wf)) + (h_s/Wf)*(1-eps_roll));
+    
     % delta_Fz_f_act = (Fz_fr - Fz_fl)/2;
+
+
+    alpha_r_lin = linspace(0 , max(alpha_r) , length(mu_r));
+    alpha_f_lin = linspace(0 , max(alpha_f) , length(mu_r));
    
     figure('Name' , ' lateral load transfer - Rear'), clf
-    ax(1) = subplot(411);
-    plot( Fy_rr , 'DisplayName','Rear right')
+    ax(1) = subplot(221);
+    plot( alpha_r_lin , Fy_rr , 'DisplayName','Rear right')
     hold on
-    plot( Fy_rl , 'DisplayName','Rear left')
+    plot( alpha_r_lin , Fy_rl , 'DisplayName','Rear left')
     hold on
-    plot( Fy_r , 'DisplayName','Rear axel')
+    plot( alpha_r_lin , Fy_r , 'DisplayName','Rear axel')
     grid on
     xlabel('t')
     ylabel('$F_{y}$ [N]')
     legend
     title('Rear wheel')
 
-    ax(2) = subplot(412);
+    ax(2) = subplot(222);
 
-    plot( Fy_fr , 'DisplayName','front right')
+    plot( alpha_f_lin , Fy_fr , 'DisplayName','front right')
     hold on
-    plot( Fy_fl , 'DisplayName','front left')
+    plot( alpha_f_lin , Fy_fl , 'DisplayName','front left')
     hold on
-    plot( Fy_f , 'DisplayName','front axel')
+    plot( alpha_f_lin , Fy_f , 'DisplayName','front axel')
     grid on
     xlabel('t')
     ylabel('$F_{y}$ [N]')
     legend
     title('front wheel')
 
-    ax(3) = subplot(413);
+    ax(3) = subplot(223);
 
-    plot( delta_Fz_f_act , 'DisplayName','front experienced data ')
+    plot( alpha_f_lin , delta_Fz_f_act , 'DisplayName','front experienced data ')
     hold on
-    plot( delta_Fz_f_theory , 'DisplayName','front theory')
-    grid on
+    % plot( alpha_f_lin , delta_Fz_f_theory , 'DisplayName','front theory')
+    % grid on
     xlabel('$\alpha$ []')
-    ylabel('$\delta\F_{z}$ [N]')
+    ylabel('$\delta F_{z}$ [N]')
     legend
     title('front Axel')
 
-    ax(3) = subplot(414);
+    ax(3) = subplot(224);
 
-    plot( delta_Fz_r_act , 'DisplayName','rear experienced data ')
+    plot( alpha_r_lin , delta_Fz_r_act , 'DisplayName','rear experienced data ')
     hold on
-    plot( delta_Fz_r_theory , 'DisplayName','rear theory')
-    grid on
+    % plot( alpha_r_test , delta_Fz_r_theory , 'DisplayName','rear theory')
+    % grid on
     xlabel('$\alpha$ []')
-    ylabel('$\deltaF_{z}$ [N]')
+    ylabel('$\delta F_{z}$[N]')
     legend
     title('rear Axel')
 
@@ -659,19 +665,57 @@ function dataAnalysis(model_sim,vehicle_data,Ts)
     % -------------------------------
     %% axle characteristics
     % -------------------------------
+
+    mu_f = Ay/g;
+    mu_r = Ay/g;
+    alpha_r_lin = linspace(0 , 1 , length(mu_r));
+    alpha_f_lin = linspace(0 , 1 , length(mu_r));
+
+
     figure('Name', 'Axle characteristics')
 
     % ax(1) = subplot(211);
-    plot(alpha_r , mu_r , 'DisplayName', 'Rear')
+    plot(alpha_r_lin , mu_r , 'DisplayName', 'Rear' , 'LineWidth', 2 , 'LineStyle', '--')
     hold on
-    plot(alpha_f , mu_f , 'DisplayName', 'Front')
+    plot(alpha_f_lin , mu_f , 'DisplayName', 'Front' , 'LineWidth', 2 , 'LineStyle', ':')
     hold on
-    xlabel('$\alpha\_{r}$ & $\alpha_{f}$')
-    ylabel('$\mu_{r}$ & $\mu_{f}$')
+    xlabel('$\alpha_{r}$ , $\alpha_{f}$')
+    ylabel('$\mu_{r}$ , $\mu_{f}$')
     legend
     title('Axle characteristics')
 
+    
+    % -------------------------------
+    %% Steering behavior        
+    % -------------------------------
+    
+    alpha_r_th = -beta + rho_ss*Lr;
+    alpha_f_th = desired_steer_atWheel- beta - rho_ss*Lf;
+    delta_alpha = (alpha_r_th - alpha_f_th);
+    % dalpha = (delta_D*tau_D/L) - rho_ss*L;
 
+    lowerBound = -1.63658;
+    upperBound = -1.635;
+    indices = delta_alpha < upperBound & delta_alpha>lowerBound ;
+    dalpha = delta_alpha(indices);
+
+    mu_steer = linspace(0 , max(Ay_ss/g) , length(dalpha));
+    % mu_steer_full = linspace(0 , max(Ay_ss/g) , length(delta_alpha));
+    mu_steer_max = max(Ay_ss/g);
+    
+
+
+    % delta alpha - ay/g
+    figure('Name', ' Steering behavior')
+    plot(mu_steer , -dalpha , 'LineWidth' , 2)
+    hold on
+    % plot(mu_steer_full , -delta_alpha , 'LineWidth' , 1 , 'LineStyle' , '--')
+    hold on
+    line([mu_steer_max mu_steer_max], ylim, 'Color', 'green', 'LineStyle' , '--' , 'LineWidth' , 2);
+    ylabel('$-\Delta \alpha$')
+    xlabel('$a_{y}$ / g')
+    % text(mu_steer_max+0.01 , min(dalpha) , 'NS' , 'Rotation', 90 , 'FontSize',16 , 'FontWeight', 'bold')
+    hold on
     
 end
     

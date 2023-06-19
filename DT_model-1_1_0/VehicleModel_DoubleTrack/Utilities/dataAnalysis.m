@@ -108,6 +108,7 @@ function dataAnalysis(model_sim,vehicle_data,Ts)
     dot_u_filt = filtfilt(b_butt,a_butt,dot_u);  
     % Steady state lateral acceleration
     Ay_ss = Omega.*u;
+    Ay_filt = filtfilt(b_butt,a_butt,Ay_ss); 
     % Longitudinal jerk [m/s^3]
     jerk_x = diff(dot_u)/Ts;
 
@@ -667,23 +668,54 @@ function dataAnalysis(model_sim,vehicle_data,Ts)
 
     mu_f = Ay/g;
     mu_r = Ay/g;
-    alpha_r_lin = length(mu_r);
-    alpha_f_lin = length(mu_f);
+    alpha_r_lin = linspace(0 , 1 , length(mu_r));
+    alpha_f_lin = linspace(0 , 1 , length(mu_r));
 
 
     figure('Name', 'Axle characteristics')
 
     % ax(1) = subplot(211);
-    plot(alpha_r_lin , mu_r , 'DisplayName', 'Rear')
+    plot(alpha_r_lin , mu_r , 'DisplayName', 'Rear' , 'LineWidth', 2 , 'LineStyle', '--')
     hold on
-    plot(alpha_f_lin , mu_f , 'DisplayName', 'Front')
+    plot(alpha_f_lin , mu_f , 'DisplayName', 'Front' , 'LineWidth', 2 , 'LineStyle', ':')
     hold on
     xlabel('$\alpha_{r}$ , $\alpha_{f}$')
     ylabel('$\mu_{r}$ , $\mu_{f}$')
     legend
     title('Axle characteristics')
 
+    
+    % -------------------------------
+    %% Steering behavior        
+    % -------------------------------
+    
+    alpha_r_th = -beta + rho_ss*Lr;
+    alpha_f_th = desired_steer_atWheel- beta - rho_ss*Lf;
+    delta_alpha = (alpha_r_th - alpha_f_th);
+    % dalpha = (delta_D*tau_D/L) - rho_ss*L;
 
+    lowerBound = -1.63658;
+    upperBound = -1.635;
+    indices = delta_alpha < upperBound & delta_alpha>lowerBound ;
+    dalpha = delta_alpha(indices);
+
+    mu_steer = linspace(0 , max(Ay_ss/g) , length(dalpha));
+    % mu_steer_full = linspace(0 , max(Ay_ss/g) , length(delta_alpha));
+    mu_steer_max = max(Ay_ss/g);
+    
+
+
+    % delta alpha - ay/g
+    figure('Name', ' Steering behavior')
+    plot(mu_steer , -dalpha , 'LineWidth' , 2)
+    hold on
+    % plot(mu_steer_full , -delta_alpha , 'LineWidth' , 1 , 'LineStyle' , '--')
+    hold on
+    line([mu_steer_max mu_steer_max], ylim, 'Color', 'green', 'LineStyle' , '--' , 'LineWidth' , 2);
+    ylabel('$-\Delta \alpha$')
+    xlabel('$a_{y}$ / g')
+    % text(mu_steer_max+0.01 , min(dalpha) , 'NS' , 'Rotation', 90 , 'FontSize',16 , 'FontWeight', 'bold')
+    hold on
     
 end
     
