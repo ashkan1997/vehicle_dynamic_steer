@@ -157,9 +157,6 @@ function dataAnalysis(model_sim,vehicle_data,Ts)
     %% Handling diagram
     %----------------------------
     
-    dalpha_data = (alpha_r - alpha_f);
-    % dalpha_theor = (desired_steer_atWheel/L) - (rho_ss*L);
-    dalpha_theor = rho_ss*L - deg2rad(desired_steer_atWheel);
    
     %----------------------------
     %% Understeering Gradient
@@ -167,7 +164,9 @@ function dataAnalysis(model_sim,vehicle_data,Ts)
 
     Kus_theor = (-m/ L /tau_D)*(Lf/Ks_r - Lr/Ks_f);
 
-
+    dalpha_data = (alpha_r - alpha_f);
+    % dalpha_theor = (desired_steer_atWheel/L) - (rho_ss*L);
+    dalpha_theor = rho_ss*L - deg2rad(desired_steer_atWheel);
 
 
 
@@ -645,6 +644,25 @@ function dataAnalysis(model_sim,vehicle_data,Ts)
     ylabel('$\rho L - \frac{\delta}{\tau}$')
     legend
     
+
+    
+
+    % -------------------------------
+    %% Plot Handling Diagram
+    % -------------------------------
+    figure('Name','Handling Diagram')
+    ax(1) = subplot(211);
+    hold on
+    plot(Ay_norm , beta , 'LineWidth', 2 , 'DisplayName', '$frac{d\beta}{dA_y}}$')
+    xlabel('$A_{y}$')
+    ylabel('$\beta$')
+    ax(2) =subplot(212);
+    hold on
+    plot(Ay_norm , rho_ss , 'LineWidth', 2 , 'DisplayName', '$frac{d\rho}{dA_y}}$')
+    xlabel('$A_{y}$')
+    ylabel('$\rho$')
+
+
 
 
     % -------------------------------
