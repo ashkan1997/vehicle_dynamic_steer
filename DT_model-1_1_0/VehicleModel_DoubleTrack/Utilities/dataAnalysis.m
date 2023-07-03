@@ -142,7 +142,8 @@ function dataAnalysis(model_sim,vehicle_data,Ts)
     mu_r_data = Fy_r_data./Fz_r;
     mu_f_data = Fy_f_data./Fz_f;
 
-    Ay_norm = Ay_ss/g;
+    % Ay_norm = Ay_ss/g;
+    Ay_norm = Ay_filt/g;
     Ay_norm_lin = linspace(0 , max(Ay_ss/g) , length(mu_f_data));
 
     alpha_r = 0.5*(alpha_rl+alpha_rr);
@@ -158,8 +159,7 @@ function dataAnalysis(model_sim,vehicle_data,Ts)
     
     dalpha_data = (alpha_r - alpha_f);
     % dalpha_theor = (desired_steer_atWheel/L) - (rho_ss*L);
-    dalpha_theor = rho_ss*L - deg2rad(delta_D*tau_D);
-
+    dalpha_theor = rho_ss*L - deg2rad(desired_steer_atWheel);
    
     %----------------------------
     %% Understeering Gradient
@@ -640,15 +640,6 @@ function dataAnalysis(model_sim,vehicle_data,Ts)
     hold on
     plot(Ay_norm , dalpha_theor , 'DisplayName' , 'theory ($\rho L - \delta_{H} \tau_{d}$)' , 'LineWidth', 2 , 'Color', 'red' , 'LineStyle','-')
     hold on
-    % ax(1) = subplot(211);
-    % hold on
-    % plot(Ay_norm , dalpha_theor , 'DisplayName' , 'theory' , 'LineWidth', 2 , 'Color', 'red' , 'LineStyle','-')
-    % title('Theory')
-    % 
-    % ax(2) = subplot(212);
-    % hold on
-    % plot(Ay_norm , -dalpha_data , 'DisplayName' , 'Fitted' , 'LineWidth', 2 , 'Color', 'blue' , 'LineStyle','-')
-    % title('Fitted')
 
     xlabel('$\frac{A_{y}}{g}$')
     ylabel('$\rho L - \frac{\delta}{\tau}$')
