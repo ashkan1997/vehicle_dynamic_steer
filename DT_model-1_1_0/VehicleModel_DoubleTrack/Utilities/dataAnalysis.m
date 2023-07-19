@@ -15,14 +15,6 @@ function dataAnalysis(model_sim,vehicle_data,Ts)
     m  = vehicle_data.vehicle.m;   % [kg] Vehicle Mass
     g  = vehicle_data.vehicle.g;   % [m/s^2] Gravitational acceleration
     tau_D = vehicle_data.steering_system.tau_D;  % [-] steering system ratio (pinion-rack)
-    h_rr = vehicle_data.front_suspension.h_rc_f;
-    h_rf = vehicle_data.rear_suspension.h_rc_r;
-    h_r = h_rr + (h_rf - h_rr)*Lr/(L);
-    h_s = vehicle_data.vehicle.hGs;
-    h_G = h_r + h_s;
-    Ks_f = vehicle_data.front_suspension.Ks_f;
-    Ks_r = vehicle_data.rear_suspension.Ks_r;
-    eps_roll = (Ks_f)/(Ks_f + Ks_r);
 
     % ---------------------------------
     %% Extract data from simulink model
@@ -86,7 +78,7 @@ function dataAnalysis(model_sim,vehicle_data,Ts)
     gamma_rl   = model_sim.extra_params.gamma_rl.data;
     gamma_fr   = model_sim.extra_params.gamma_fr.data;
     gamma_fl   = model_sim.extra_params.gamma_fl.data;
-    delta_fr   = model_sim.extra_params.delta_fr.data; 
+    delta_fr   = model_sim.extra_params.delta_fr.data;
     delta_fl   = model_sim.extra_params.delta_fl.data;
 
     % Chassis side slip angle beta [rad]
@@ -108,7 +100,6 @@ function dataAnalysis(model_sim,vehicle_data,Ts)
     dot_u_filt = filtfilt(b_butt,a_butt,dot_u);  
     % Steady state lateral acceleration
     Ay_ss = Omega.*u;
-    Ay_filt = filtfilt(b_butt,a_butt,Ay_ss); 
     % Longitudinal jerk [m/s^3]
     jerk_x = diff(dot_u)/Ts;
 
@@ -122,53 +113,6 @@ function dataAnalysis(model_sim,vehicle_data,Ts)
     rho_tran = ((dot_v.*u(1:end-1) - dot_u.*v(1:end-1)) ./ ((vG(1:end-1)).^3)) + rho_ss(1:end-1);
     % Desired sinusoidal steering angle for the equivalent single track front wheel
     desired_steer_atWheel = delta_D/tau_D;
-
-    %% ADDED PART
-    %----------------------------
-    % Lateral load transfer
-    %----------------------------
-    Fy_r_data = Fy_rr + Fy_rl;
-    Fy_f_data = Fy_fl + Fy_fr;
-   
-    Fy_r_theor = m*Ay_ss*(Lf/L);
-    Fy_f_theor = m*Ay_ss*(Lr/L);
-
-    Fz_f = Fz_fl + Fz_fr;
-    Fz_r = Fz_rl + Fz_rr;
-
-    mu_r_theor = Ay_ss/g;
-    mu_f_theor = Ay_ss/g;
-
-    mu_r_data = Fy_r_data./Fz_r;
-    mu_f_data = Fy_f_data./Fz_f;
-
-    % Ay_norm = Ay_ss/g;
-    Ay_norm = Ay_filt/g;
-    Ay_norm_lin = linspace(0 , max(Ay_ss/g) , length(mu_f_data));
-
-    alpha_r = 0.5*(alpha_rl+alpha_rr);
-    alpha_f = 0.5*(alpha_fl+alpha_fr);
-
-    alpha_r_lin = linspace(0,max(alpha_r) , length(mu_f_data));
-    alpha_f_lin = linspace(0,max(alpha_f) , length(mu_f_data));
-
-    %%
-    %----------------------------
-    %% Handling diagram
-    %----------------------------
-    
-   
-    %----------------------------
-    %% Understeering Gradient
-    %----------------------------
-
-    Kus_theor = (-m/ L /tau_D)*(Lf/Ks_r - Lr/Ks_f);
-
-    dalpha_data = (alpha_r - alpha_f);
-    % dalpha_theor = (desired_steer_atWheel/L) - (rho_ss*L);
-    dalpha_theor = rho_ss*L - deg2rad(desired_steer_atWheel);
-
-
 
 
     % ---------------------------------
@@ -613,128 +557,5 @@ function dataAnalysis(model_sim,vehicle_data,Ts)
     grid on
     hold off
     
-
-    % -------------------------------
-
-    %% Plot Axle Characteristics
-    % -------------------------------
-    figure('Name','Axle Characteristics')
-    plot(alpha_r_lin , mu_r_data , 'DisplayName' , 'Rear data' , 'LineWidth', 2 , 'Color', 'green' , 'LineStyle','-')
-    hold on
-    plot(alpha_f_lin , mu_f_data , 'DisplayName' , 'Front data' , 'LineWidth', 2 , 'Color', 'red' , 'LineStyle','-')
-    hold on
-    plot(alpha_r_lin , mu_r_theor , 'DisplayName' , 'Rear theory' , 'LineWidth', 2 , 'Color', 'green' , 'LineStyle','-.')
-    hold on
-    plot(alpha_f_lin , mu_f_theor , 'DisplayName' , 'Front theory' , 'LineWidth', 2 , 'Color', 'red' , 'LineStyle','--')
-    hold on
-    xlabel('$\alpha_{r},\alpha_{f}$')
-    ylabel('$\mu_{f},\mu_{r}$')
-    legend
-
-    % -------------------------------
-    %% Plot Handling Behavior
-    % -------------------------------
-    figure('Name' , 'Handling Diagram')
-    plot(Ay_norm , dalpha_data , 'DisplayName' , 'Fitted ($\alpha_{r} - \alpha_{f})$' , 'LineWidth', 2 , 'Color', 'blue' , 'LineStyle','-')
-    hold on
-    plot(Ay_norm , dalpha_theor , 'DisplayName' , 'theory ($\rho L - \delta_{H} \tau_{d}$)' , 'LineWidth', 2 , 'Color', 'red' , 'LineStyle','-')
-    hold on
-
-    xlabel('$\frac{A_{y}}{g}$')
-    ylabel('$\rho L - \frac{\delta}{\tau}$')
-    legend
-    
-
-    
-
-    % -------------------------------
-    %% Plot Handling Diagram
-    % -------------------------------
-    figure('Name','Handling Diagram')
-    ax(1) = subplot(211);
-    hold on
-    plot(Ay_norm , beta , 'LineWidth', 2 , 'DisplayName', '$frac{d\beta}{dA_y}}$')
-    xlabel('$A_{y}$')
-    ylabel('$\beta$')
-    ax(2) =subplot(212);
-    hold on
-    plot(Ay_norm , rho_ss , 'LineWidth', 2 , 'DisplayName', '$frac{d\rho}{dA_y}}$')
-    xlabel('$A_{y}$')
-    ylabel('$\rho$')
-
-
-
-
-    % -------------------------------
-    %% Plot Understeering Gradient
-    % -------------------------------
-    % figure('Name','Understeering Gradient')
-    % plot(Kus_theor , Ay_norm , 'DisplayName' , '$K_{us}$ theory')
-
-    % -------------------------------
-    %% Steering behavior        
-    % -------------------------------
-    % 
-    % alpha_r_th = -beta + rho_ss*Lr;
-    % alpha_f_th = desired_steer_atWheel- beta - rho_ss*Lf;
-    % delta_alpha = (alpha_r_th - alpha_f_th);
-    % % dalpha = (delta_D*tau_D/L) - rho_ss*L;
-    % 
-    % lowerBound = -1.63658;
-    % upperBound = -1.635;
-    % indices = delta_alpha < upperBound & delta_alpha>lowerBound ;
-    % dalpha = delta_alpha(indices);
-    % 
-    % mu_steer = linspace(0 , max(Ay_ss/g) , length(dalpha));
-    % % mu_steer_full = linspace(0 , max(Ay_ss/g) , length(delta_alpha));
-    % mu_steer_max = max(Ay_ss/g);
-    % 
-    % 
-    % 
-    % % delta alpha - ay/g
-    % figure('Name', ' Steering behavior')
-    % plot(mu_steer , -dalpha , 'LineWidth' , 2)
-    % hold on
-    % % plot(mu_steer_full , -delta_alpha , 'LineWidth' , 1 , 'LineStyle' , '--')
-    % hold on
-    % line([mu_steer_max mu_steer_max], ylim, 'Color', 'green', 'LineStyle' , '--' , 'LineWidth' , 2);
-    % ylabel('$-\Delta \alpha$')
-    % xlabel('$a_{y}$ / g')
-    % % text(mu_steer_max+0.01 , min(dalpha) , 'NS' , 'Rotation', 90 , 'FontSize',16 , 'FontWeight', 'bold')
-    % hold on
-    
-
-
-            %% TEST-TEST-TEST-TEST-TEST
-        
-            % alpha_r_th = -beta + rho_ss*Lr;
-            % alpha_f_th = desired_steer_atWheel- beta - rho_ss*Lf;
-            % delta_alpha = (alpha_r_th - alpha_f_th);
-            % % dalpha = (delta_D*tau_D/L) - rho_ss*L;
-            % 
-            % mu_steer = linspace(0 , max(Ay_ss/g) , length(delta_alpha));
-            % mu_steer_max = max(Ay_ss/g);
-        
-            %% delta alpha - ay/g
-            % figure('Name', ' Steering behavior')
-            % plot(mu_steer , -delta_alpha , 'LineWidth' , 2)
-            % hold on
-            % line([mu_steer_max mu_steer_max], ylim, 'Color', 'green', 'LineStyle' , '--' , 'LineWidth' , 2);
-            % ylabel('$\Delta \alpha$')
-            % xlabel('$a_{y}$ / g')
-            % text(mu_steer_max+0.01 , min(delta_alpha) , 'NS' , 'Rotation', 90 , 'FontSize',16 , 'FontWeight', 'bold')
-            % hold on
-        
-            %% 
-            % delta_H = (rho_ss/L / tau_D) - (delta_alpha/tau_D);
-            % rho_NS = rho_ss*L/tau_D;
-            % 
-            % figure()
-            % plot(mu_steer , rho_ss , 'LineWidth', 2)
-            % hold on
-            % line(xlim , [max(rho_NS) max(rho_NS)], 'Color' , 'green' , 'LineStyle' , '--' , 'LineWidth' , 2)
-            % hold on
 end
-
-
     
