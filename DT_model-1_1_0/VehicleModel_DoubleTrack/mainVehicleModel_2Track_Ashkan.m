@@ -20,7 +20,7 @@ initialize_environment;
 % ----------------------------
 %% TEST SELECTION
 % ----------------------------
-flag.test = 1;      % 1 --> STEER ramp test
+flag.test = 0;      % 1 --> STEER ramp test
                     % 0 --> SPEED ramp test
 % ----------------------------
 %% Load vehicle data
@@ -82,7 +82,7 @@ fprintf('Camber simulation Completed \n')
 %% Axle Stiffness
 
 
-eps_Ks_init = [9 4 2.33 1.5 1 0.66 0.485 0.25 0.111];
+eps_Ks_init = [9 4 2.33333333333 1.5000000 1 0.666666 0.428571428571429 0.25 0.11111];
 vehicle_data = getVehicleDataStruct();
 Ks_r = vehicle_data.rear_suspension.Ks_r;
 Ks_f = vehicle_data.front_suspension.Ks_f;
@@ -119,6 +119,7 @@ fprintf('Toe angle simulation Completed \n')
 % ----------------------------
 %% Post-Processing
 % ----------------------------
+vehicle_data = getVehicleDataStruct();
 % clc
 % close all
 dataAnalysis(model_sim,vehicle_data,Ts);
@@ -128,14 +129,15 @@ extra_data_analysis(model_sim,vehicle_data,Ts);
 %% Camber Data Analysis
 camber_data_analysis(model_sim_camber , vehicle_data , Ts , camber_ang);
 
-%% Stiffness Data Analysis
+%% Axle Stiffness Data Analysis
 Axle_data_analysis(model_sim_Ks,vehicle_data,Ts,eps_Ks_init);
 
 %% Toe angle Data Analysis
 toe_data_analysis(model_sim_toe,vehicle_data,Ts , toe_ang)
 
 
-
+%% Save Figures
+save_fig(flag.test);
 
 
 

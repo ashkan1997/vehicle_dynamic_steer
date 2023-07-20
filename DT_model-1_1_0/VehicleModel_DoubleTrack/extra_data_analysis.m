@@ -159,11 +159,10 @@ function extra_data_analysis(model_sim,vehicle_data,Ts)
     %% Lateral Load transfer
     %----------------------------
     dFz_f = Fz_fr - Fz_fl;
-    dFz_f_theor = m*Ay_ss *( (Lf*h_rr/L/Wf) + h_s*eps_roll/Wf );
-
     dFz_r = Fz_rr - Fz_rl;
-    dFz_r_theor = m*Ay_ss *( (Lr*h_rf/L/Wf) + (1-eps_roll)*h_s/Wf );
-
+    
+    dFz_f_theor = m*Ay_ss *( (Lr*h_rf/L/Wf) + (1-eps_roll)*h_s/Wf );
+    dFz_r_theor = m*Ay_ss *( (Lf*h_rr/L/Wf) + h_s*eps_roll/Wf );
     
     %%
     %----------------------------
