@@ -126,7 +126,7 @@ function extra_data_analysis(model_sim,vehicle_data,Ts)
     
     %% ADDED PART
     %----------------------------
-    % Lateral load transfer
+    %% Axle Characteristics
     %----------------------------
     Fy_r_data = Fy_rr + Fy_rl;
     Fy_f_data = Fy_fl + Fy_fr;
@@ -154,6 +154,16 @@ function extra_data_analysis(model_sim,vehicle_data,Ts)
     
     alpha_r_lin = linspace(0,max(alpha_r) , length(mu_f_data));
     alpha_f_lin = linspace(0,max(alpha_f) , length(mu_f_data));
+
+    %----------------------------
+    %% Lateral Load transfer
+    %----------------------------
+    dFz_f = Fz_fr - Fz_fl;
+    dFz_f_theor = m*Ay_ss *( (Lf*h_rr/L/Wf) + h_s*eps_roll/Wf );
+
+    dFz_r = Fz_rr - Fz_rl;
+    dFz_r_theor = m*Ay_ss *( (Lr*h_rf/L/Wf) + (1-eps_roll)*h_s/Wf );
+
     
     %%
     %----------------------------
@@ -218,7 +228,40 @@ function extra_data_analysis(model_sim,vehicle_data,Ts)
     idx.u_beta = u>4;
     u_beta = u(idx.u_beta);
     %% Extra plots
+    % ------------------------------
     % -------------------------------
+    %% Plot Lateral load transfer (t)
+    % -------------------------------
+    % figure('Name','Lateral Load Transfer [t]')
+    % plot(time_sim , dFz_f , 'LineWidth',2 , 'DisplayName','$\Delta F_{zf} (a_y)$')
+    % hold on
+    % plot(time_sim , dFz_r , 'LineWidth',2 , 'DisplayName','$\Delta F_{zr} (a_y)$')
+    % hold on
+    % legend
+    % xlabel('t [s]')
+    % ylabel('$\Delta F_{z} [N]$')
+
+
+    % -------------------------------
+    %% Plot Lateral load transfer (Ay)
+    % -------------------------------
+    figure('Name','Lateral Load Transfer [Ay]')
+    plot(Ay_ss , dFz_f , 'LineWidth',2 , 'DisplayName','$\Delta F_{zf} (a_y)$')
+    hold on
+    plot(Ay_ss , dFz_r , 'LineWidth',2 , 'DisplayName','$\Delta F_{zr} (a_y)$')
+    hold on
+    plot(Ay_ss , dFz_f_theor , 'LineWidth',2 , 'DisplayName','$\Delta F_{zf} Theory$' , 'LineStyle','--')
+    hold on
+    plot(Ay_ss , dFz_r_theor , 'LineWidth',2 , 'DisplayName','$\Delta F_{zr} Theory$' , 'LineStyle','--' )
+    hold on
+    legend
+    xlabel('$A_y$')
+    ylabel('$\Delta F_{z}$')
+
+
+
+
+
     %% Plot Axle Characteristics
     % -------------------------------
     figure('Name','Axle Characteristics')

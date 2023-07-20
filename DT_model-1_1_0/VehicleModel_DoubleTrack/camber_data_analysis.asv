@@ -617,21 +617,64 @@ function camber_data_analysis(model_sim_camber,vehicle_data,Ts , camber_ang)
     
 
     %% alpha
-    alpha_r = 0.5*(alpha_rl+alpha_rr);
+
+    % alpha_r = 0.5*(alpha_rl+alpha_rr);
     for i = -camber_ang:camber_ang
         if i<0
             my_field = strcat('v_min',num2str(abs(i)));
         else
             my_field = strcat('v',num2str(i));
         end
-        alpha_r.(my_field) = Omega.(my_field)./vG.(my_field);
+        alpha_r.(my_field) = 0.5*(alpha_rl.(my_field)+alpha_rr.(my_field));
     end
 
-    alpha_f = 0.5*(alpha_fl+alpha_fr);
+    % alpha_f = 0.5*(alpha_fl+alpha_fr);
+    
+    for i = -camber_ang:camber_ang
+        if i<0
+            my_field = strcat('v_min',num2str(abs(i)));
+        else
+            my_field = strcat('v',num2str(i));
+        end
+        alpha_f.(my_field) = 0.5*(alpha_fl.(my_field)+alpha_fr.(my_field));
+    end
 
 
+    % dalpha = alpha_r - alpha_f;
+    for i = -camber_ang:camber_ang
+        if i<0
+            my_field = strcat('v_min',num2str(abs(i)));
+        else
+            my_field = strcat('v',num2str(i));
+        end
+        dalpha.(my_field) =alpha_r.(my_field) - alpha_f.(my_field);
+    end
 
 
+    
 
+    %% Plot
+
+    %% Plot handling diagram
+    figure('Name','Camber angle Handling Diagram')
+    cmap = jet(camber_ang*2 + 1);
+    j = 1;
+    for i = -camber_ang:camber_ang
+        
+        if i<0
+            my_field = strcat('v_min',num2str(abs(i)));
+        else
+            my_field = strcat('v',num2str(i));
+        end
+        
+        plot(Ay_ss.(my_field)/g , dalpha.(my_field) , 'LineWidth', 2 , 'DisplayName', ['$\gamma =$ ' ,num2str(i)] , 'Color',cmap(j , :));
+        hold on
+        j = j+1;
+    end
+   
+   
+    ylabel('$\rho$L - $\delta$ = $\Delta \alpha$')
+    xlabel('$\frac{A_{y}}{g}$')
+    legend 
 
 end

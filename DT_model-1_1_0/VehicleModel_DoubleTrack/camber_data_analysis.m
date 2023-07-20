@@ -657,15 +657,19 @@ function camber_data_analysis(model_sim_camber,vehicle_data,Ts , camber_ang)
 
     %% Plot handling diagram
     figure('Name','Camber angle Handling Diagram')
-    
+    cmap = jet(camber_ang*2 + 1);
+    j = 1;
     for i = -camber_ang:camber_ang
+        
         if i<0
             my_field = strcat('v_min',num2str(abs(i)));
         else
             my_field = strcat('v',num2str(i));
         end
-        plot(Ay_ss.(my_field)/g , dalpha.(my_field) , 'LineWidth', 2 , 'DisplayName', ['$\gamma =$ ' ,num2str(i)]);
+        
+        plot(Ay_ss.(my_field)/g , dalpha.(my_field) , 'LineWidth', 2 , 'DisplayName', ['$\gamma =$ ' ,num2str(i)] , 'Color',cmap(j , :));
         hold on
+        j = j+1;
     end
    
    

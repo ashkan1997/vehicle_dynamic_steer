@@ -657,15 +657,17 @@ function toe_data_analysis(model_sim_toe,vehicle_data,Ts , toe_ang)
 
     %% Plot handling diagram
     figure('Name','Toe angle Handling Diagram')
-    
+    cmap = jet(toe_ang*2 + 1);
+    j = 1;
     for i = -toe_ang:toe_ang
         if i<0
             my_field = strcat('v_min',num2str(abs(i)));
         else
             my_field = strcat('v',num2str(i));
         end
-        plot(Ay_ss.(my_field)/g , dalpha.(my_field) , 'LineWidth', 2 , 'DisplayName', ['$\delta =$ ' ,num2str(i)]);
+        plot(Ay_ss.(my_field)/g , dalpha.(my_field) , 'LineWidth', 2 , 'DisplayName', ['$\delta =$ ' ,num2str(i)] , 'Color',cmap(j,:));
         hold on
+        j = j+1;
     end
    
    

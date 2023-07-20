@@ -1,5 +1,8 @@
 function Axle_data_analysis(model_sim_Ks,vehicle_data,Ts , eps_Ks_init)
 
+    % ----------------------------------------------------------------
+    %% Post-Processing and Data Analysis
+    % ----------------------------------------------------------------
     Lf = vehicle_data.vehicle.Lf;  % [m] Distance between vehicle CoG and front wheels axle
     Lr = vehicle_data.vehicle.Lr;  % [m] Distance between vehicle CoG and front wheels axle
     L  = vehicle_data.vehicle.L;   % [m] Vehicle length
@@ -399,12 +402,15 @@ function Axle_data_analysis(model_sim_Ks,vehicle_data,Ts , eps_Ks_init)
      %% Plot
 
     %% Plot handling diagram
-    figure('Name','Ks Handling Diagram')
     
+    figure('Name','Ks Handling Diagram')
+    cmap = jet(length(eps_Ks_init) + 1);
+
     for i=1:length(eps_Ks_init)
         my_field = strcat('eps_Ks_',num2str(i));
-        plot(Ay_ss.(my_field)/g , dalpha.(my_field) , 'LineWidth', 2 , 'DisplayName', ['$\epsilon =$ ' ,num2str(0.1*i)]);
+        plot(Ay_ss.(my_field)/g , dalpha.(my_field) , 'LineWidth', 2 , 'DisplayName', ['$\epsilon =$ ' ,num2str(0.1*i)] , 'Color',cmap(i,:));
         hold on
+        
     end
    
    
