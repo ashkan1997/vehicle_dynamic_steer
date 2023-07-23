@@ -81,7 +81,6 @@ fprintf('Camber simulation Completed \n')
 
 %% Axle Stiffness
 
-
 eps_Ks_init = [9 4 2.33333333333 1.5000000 1 0.666666 0.428571428571429 0.25 0.11111];
 vehicle_data = getVehicleDataStruct();
 Ks_r = vehicle_data.rear_suspension.Ks_r;
@@ -116,6 +115,7 @@ for i = -toe_ang:toe_ang
 end
 
 fprintf('Toe angle simulation Completed \n')
+
 % ----------------------------
 %% Post-Processing
 % ----------------------------
@@ -123,9 +123,11 @@ vehicle_data = getVehicleDataStruct();
 % clc
 % close all
 dataAnalysis(model_sim,vehicle_data,Ts);
+
 %% Extra Data Analysis
 extra_data_analysis(model_sim,vehicle_data,Ts);
 % vehicleAnimation(model_sim,vehicle_data,Ts);
+
 %% Camber Data Analysis
 camber_data_analysis(model_sim_camber , vehicle_data , Ts , camber_ang);
 
