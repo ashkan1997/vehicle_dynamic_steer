@@ -666,7 +666,6 @@ function toe_data_analysis(model_sim_toe,vehicle_data,Ts , toe_ang)
         j = j+1;
     end
    
-   
     ylabel('$\delta$ - $\rho$L = $-\Delta \alpha$')
     xlabel('$\frac{A_{y}}{g}$')
     xlim([0,0.7])
