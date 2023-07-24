@@ -128,20 +128,27 @@ function extra_data_analysis(model_sim,vehicle_data,Ts)
     %----------------------------
     %% Axle Characteristics
     %----------------------------
+
+    % Experimental axle lateral force:
     Fy_r_data = Fy_rr + Fy_rl;
     Fy_f_data = Fy_fl + Fy_fr;
     
+    % There is one to one relationship between lateral forces on each axle and the 
+    % lateral acceleration via the lateral force balance equations:
     Fy_r_theor = m*Ay_ss*(Lf/L);
     Fy_f_theor = m*Ay_ss*(Lr/L);
     
+    % Axle vertical force:
     Fz_f = Fz_fl + Fz_fr;
     Fz_r = Fz_rl + Fz_rr;
     
+    % Theoretical adhesion coefficient:
     % mu_r_theor = Ay_ss/g;
     % mu_f_theor = Ay_ss/g;             % --> which one are correct?
     mu_r_theor = Fy_r_theor./Fz_r;      % --> which one are correct?
     mu_f_theor = Fy_f_theor./Fz_f;
     
+    % Experimental adhesion coefficient:
     mu_r_data = Fy_r_data./Fz_r;
     mu_f_data = Fy_f_data./Fz_f;
     
@@ -149,6 +156,8 @@ function extra_data_analysis(model_sim,vehicle_data,Ts)
     Ay_norm = Ay_filt/g;
     Ay_norm_lin = linspace(0 , max(Ay_ss/g) , length(mu_f_data));
     
+    % In SS we can consider the alpha of the axle to be the average between
+    % the two tyre slips:
     alpha_r = 0.5*(alpha_rl+alpha_rr);
     alpha_f = 0.5*(alpha_fl+alpha_fr);
     
@@ -158,28 +167,28 @@ function extra_data_analysis(model_sim,vehicle_data,Ts)
     %----------------------------
     %% Lateral Load transfer
     %----------------------------
+
+    % Experimental:
     dFz_f = Fz_fr - Fz_fl;
     dFz_r = Fz_rr - Fz_rl;
     
-    dFz_f_theor = m*Ay_ss *( (Lr*h_rf/L/Wf) + (1-eps_roll)*h_s/Wf );
-    dFz_r_theor = m*Ay_ss *( (Lf*h_rr/L/Wf) + h_s*eps_roll/Wf );
+    % Theoretical:
+    dFz_f_theor = m*Ay_ss *( (Lr*h_rf/L/Wf) + eps_roll*h_s/Wf );
+    dFz_r_theor = m*Ay_ss *( (Lf*h_rr/L/Wr) + h_s*(1-eps_roll)/Wr);
     
-    %%
     %----------------------------
     %% Handling diagram
     %----------------------------
+
     delta_AK = rho_ss*L/tau_D;
     
     %----------------------------
     %% Understeering Gradient
-    %----------------------------
-    
+    %---------------------------- 
+
     Kus_theor = (-m/ L /tau_D)*(Lf/Ks_r - Lr/Ks_f);
-    oper_cond = rho_ss*L - deg2rad(desired_steer_atWheel);      % rho*L - delta = dAlpha , delta-rho*L = -dAlpha
-    dalpha = alpha_r - alpha_f;
-    
-    
-    
+    oper_cond = rho_ss*L - deg2rad(desired_steer_atWheel);      % Will use dalpha instead of -dalpha so not  rho*L - delta = dAlpha but delta-rho*L = -dAlpha
+    dalpha = alpha_r - alpha_f;    
     
     %% Extra calculations
     
@@ -191,7 +200,7 @@ function extra_data_analysis(model_sim,vehicle_data,Ts)
     idx_ay = Ay_ss > 3.3;
     ay_ss_idx = Ay_ss(idx_ay,:);
     
-    
+   
     % Slope --> m = dy/dx
     oper_cond_lin = oper_cond(idx.time);
     dalpha_lin = dalpha(idx.time);
@@ -226,8 +235,8 @@ function extra_data_analysis(model_sim,vehicle_data,Ts)
     beta_gain = beta./delta;
     idx.u_beta = u>4;
     u_beta = u(idx.u_beta);
-    %% Extra plots
-    % ------------------------------
+
+  
     % -------------------------------
     %% Plot Lateral load transfer (t)
     % -------------------------------
@@ -253,28 +262,28 @@ function extra_data_analysis(model_sim,vehicle_data,Ts)
     hold on
     plot(Ay_ss , dFz_r_theor , 'LineWidth',2 , 'DisplayName','$\Delta F_{zr} Theory$' , 'LineStyle','--' )
     hold on
-    legend
+    legend(Location="best");
+    title("Lateral Load Transfer for Speed Ramp Test in Steady State")
     xlabel('$A_y$')
     ylabel('$\Delta F_{z}$')
 
 
-
-
-
+    % -------------------------------
     %% Plot Axle Characteristics
     % -------------------------------
     figure('Name','Axle Characteristics')
-    plot(alpha_r_lin , mu_r_data , 'DisplayName' , 'Rear data' , 'LineWidth', 2 , 'Color', 'green' , 'LineStyle','-')
+    plot(alpha_r_lin , mu_r_data , 'DisplayName' , 'Rear data' , 'LineWidth', 2 , 'Color', 'blue' , 'LineStyle','-')
     hold on
-    plot(alpha_f_lin , mu_f_data , 'DisplayName' , 'Front data' , 'LineWidth', 2 , 'Color', 'red' , 'LineStyle','-')
+    plot(alpha_r_lin , mu_r_theor , 'DisplayName' , 'Rear theory' , 'LineWidth', 2 , 'Color', 'blue' , 'LineStyle','-.')
     hold on
-    plot(alpha_r_lin , mu_r_theor , 'DisplayName' , 'Rear theory' , 'LineWidth', 2 , 'Color', 'green' , 'LineStyle','-.')
+    plot(alpha_r_lin , mu_f_data , 'DisplayName' , 'Front data' , 'LineWidth', 2 , 'Color', 'red' , 'LineStyle','-')
     hold on
-    plot(alpha_f_lin , mu_f_theor , 'DisplayName' , 'Front theory' , 'LineWidth', 2 , 'Color', 'red' , 'LineStyle','--')
+    plot(alpha_r_lin , mu_f_theor , 'DisplayName' , 'Front theory' , 'LineWidth', 2 , 'Color', 'red' , 'LineStyle','--')
     hold on
     xlabel('$\alpha_{r},\alpha_{f}$')
     ylabel('$\mu_{f},\mu_{r}$')
-    legend
+    legend(Location = 'best')
+    title('Normalised Axle Characteristics')
     
     % -------------------------------
     %% Plot Handling dialgram
@@ -289,7 +298,9 @@ function extra_data_analysis(model_sim,vehicle_data,Ts)
     hold on
     ylabel('$\rho$L - $\delta$ = $\Delta \alpha$')
     xlabel('$\frac{A_{y}}{g}$')
+    xlim([0.001,0.6])
     legend 
+
     % -------------------------------
     %% Plot dAlpha - Time
     % -------------------------------
@@ -351,10 +362,6 @@ function extra_data_analysis(model_sim,vehicle_data,Ts)
     xlabel('u')
     ylabel('$\frac{\beta}{\delta}$')
     grid on
-    
-    % -------------------------------
-    %% SIMULATION OF CAMBER
-    % -------------------------------
 
     
 

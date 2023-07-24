@@ -126,22 +126,29 @@ function extra_data_analysis(model_sim,vehicle_data,Ts)
     
     %% ADDED PART
     %----------------------------
-    % Lateral load transfer
+    %% Axle Characteristics
     %----------------------------
+
+    % Experimental axle lateral force:
     Fy_r_data = Fy_rr + Fy_rl;
     Fy_f_data = Fy_fl + Fy_fr;
     
+    % There is one to one relationship between lateral forces on each axle and the 
+    % lateral acceleration via the lateral force balance equations:
     Fy_r_theor = m*Ay_ss*(Lf/L);
     Fy_f_theor = m*Ay_ss*(Lr/L);
     
+    % Axle vertical force:
     Fz_f = Fz_fl + Fz_fr;
     Fz_r = Fz_rl + Fz_rr;
     
+    % Theoretical adhesion coefficient:
     % mu_r_theor = Ay_ss/g;
     % mu_f_theor = Ay_ss/g;             % --> which one are correct?
     mu_r_theor = Fy_r_theor./Fz_r;      % --> which one are correct?
     mu_f_theor = Fy_f_theor./Fz_f;
     
+    % Experimental adhesion coefficient:
     mu_r_data = Fy_r_data./Fz_r;
     mu_f_data = Fy_f_data./Fz_f;
     
@@ -149,17 +156,31 @@ function extra_data_analysis(model_sim,vehicle_data,Ts)
     Ay_norm = Ay_filt/g;
     Ay_norm_lin = linspace(0 , max(Ay_ss/g) , length(mu_f_data));
     
+    % In SS we can consider the alpha of the axle to be the average between
+    % the two tyre slips:
     alpha_r = 0.5*(alpha_rl+alpha_rr);
     alpha_f = 0.5*(alpha_fl+alpha_fr);
     
     alpha_r_lin = linspace(0,max(alpha_r) , length(mu_f_data));
     alpha_f_lin = linspace(0,max(alpha_f) , length(mu_f_data));
+
+    %----------------------------
+    %% Lateral Load transfer
+    %----------------------------
+
+    % Experimental:
+    dFz_f = Fz_fr - Fz_fl;
+    dFz_r = Fz_rr - Fz_rl;
     
-    %%
+    % Theoretical:
+    dFz_f_theor = m*Ay_ss *( (Lr*h_rf/L/Wf) + (1-eps_roll)*h_s/Wf );
+    dFz_r_theor = m*Ay_ss *( (Lf*h_rr/L/Wf) + h_s*eps_roll/Wf );
+    
     %----------------------------
     %% Handling diagram
     %----------------------------
-    delta_AK = rho_ss*L/tau_D;
+
+    %delta_AK = rho_ss*L/tau_D;
     
     %----------------------------
     %% Understeering Gradient
@@ -215,8 +236,42 @@ function extra_data_analysis(model_sim,vehicle_data,Ts)
     %% Body slip gain
 
     beta_gain = beta./delta;
-    idx.u_beta = u>4
-    %% Extra plots
+    idx.u_beta = u>4;
+    u_beta = u(idx.u_beta);
+
+  
+    % -------------------------------
+    %% Plot Lateral load transfer (t)
+    % -------------------------------
+    % figure('Name','Lateral Load Transfer [t]')
+    % plot(time_sim , dFz_f , 'LineWidth',2 , 'DisplayName','$\Delta F_{zf} (a_y)$')
+    % hold on
+    % plot(time_sim , dFz_r , 'LineWidth',2 , 'DisplayName','$\Delta F_{zr} (a_y)$')
+    % hold on
+    % legend
+    % xlabel('t [s]')
+    % ylabel('$\Delta F_{z} [N]$')
+
+
+    % -------------------------------
+    %% Plot Lateral load transfer (Ay)
+    % -------------------------------
+    figure('Name','Lateral Load Transfer [Ay]')
+    plot(Ay_ss , dFz_f , 'LineWidth',2 , 'DisplayName','$\Delta F_{zf} (a_y)$')
+    hold on
+    plot(Ay_ss , dFz_r , 'LineWidth',2 , 'DisplayName','$\Delta F_{zr} (a_y)$')
+    hold on
+    plot(Ay_ss , dFz_f_theor , 'LineWidth',2 , 'DisplayName','$\Delta F_{zf} Theory$' , 'LineStyle','--')
+    hold on
+    plot(Ay_ss , dFz_r_theor , 'LineWidth',2 , 'DisplayName','$\Delta F_{zr} Theory$' , 'LineStyle','--' )
+    hold on
+    legend
+    xlabel('$A_y$')
+    ylabel('$\Delta F_{z}$')
+
+
+
+
     % -------------------------------
     %% Plot Axle Characteristics
     % -------------------------------
@@ -247,6 +302,7 @@ function extra_data_analysis(model_sim,vehicle_data,Ts)
     ylabel('$\rho$L - $\delta$ = $\Delta \alpha$')
     xlabel('$\frac{A_{y}}{g}$')
     legend 
+
     % -------------------------------
     %% Plot dAlpha - Time
     % -------------------------------
@@ -302,10 +358,19 @@ function extra_data_analysis(model_sim,vehicle_data,Ts)
     % -------------------------------
     
     figure('Name' , 'Body slip gain')
-    plot(u(idx.time , :) , beta_gain(idx.time , :) , 'LineWidth',2 , 'DisplayName','Data')
+    plot(u , beta_gain , 'LineWidth',2 , 'DisplayName','Data')
     hold on
 
     xlabel('u')
     ylabel('$\frac{\beta}{\delta}$')
     grid on
+
+    
+
+
+
+
+
+
+
 end

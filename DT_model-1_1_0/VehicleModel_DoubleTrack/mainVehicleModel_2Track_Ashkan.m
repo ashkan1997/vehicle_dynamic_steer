@@ -63,13 +63,17 @@ fprintf('The total simulation time was %.2f seconds\n',elapsed_time_simulation)
 
 %% camber
 camber_ang = 6;
+
+% For every camber angle run a simulation. 
 for i = -camber_ang:camber_ang
     
     vehicle_data.rear_wheel.static_camber = i;
     vehicle_data.front_wheel.static_camber = i;
     if i<0
+        % v_min = version negative velocity
         my_field = strcat('v_min',num2str(abs(i)));
     else
+        % v = version
         my_field = strcat('v',num2str(i));
     end
     fprintf('camber angle = %f\n' , i);
