@@ -130,7 +130,6 @@ dataAnalysis(model_sim,vehicle_data,Ts);
 
 %% Extra Data Analysis
 extra_data_analysis(model_sim,vehicle_data,Ts);
-% vehicleAnimation(model_sim,vehicle_data,Ts);
 
 %% Camber Data Analysis
 camber_data_analysis(model_sim_camber , vehicle_data , Ts , camber_ang);

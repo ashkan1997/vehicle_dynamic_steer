@@ -173,25 +173,22 @@ function extra_data_analysis(model_sim,vehicle_data,Ts)
     dFz_r = Fz_rr - Fz_rl;
     
     % Theoretical:
-    dFz_f_theor = m*Ay_ss *( (Lr*h_rf/L/Wf) + (1-eps_roll)*h_s/Wf );
-    dFz_r_theor = m*Ay_ss *( (Lf*h_rr/L/Wf) + h_s*eps_roll/Wf );
+    dFz_f_theor = m*Ay_ss *( (Lr*h_rf/L/Wf) + eps_roll*h_s/Wf );
+    dFz_r_theor = m*Ay_ss *( (Lf*h_rr/L/Wr) + h_s*(1-eps_roll)/Wr);
     
     %----------------------------
     %% Handling diagram
     %----------------------------
 
-    %delta_AK = rho_ss*L/tau_D;
+    delta_AK = rho_ss*L/tau_D;
     
     %----------------------------
     %% Understeering Gradient
-    %----------------------------
-    
+    %---------------------------- 
+
     Kus_theor = (-m/ L /tau_D)*(Lf/Ks_r - Lr/Ks_f);
-    oper_cond = rho_ss*L - deg2rad(desired_steer_atWheel);      % rho*L - delta = dAlpha , delta-rho*L = -dAlpha
-    dalpha = alpha_r - alpha_f;
-    
-    
-    
+    oper_cond = rho_ss*L - deg2rad(desired_steer_atWheel);      % Will use dalpha instead of -dalpha so not  rho*L - delta = dAlpha but delta-rho*L = -dAlpha
+    dalpha = alpha_r - alpha_f;    
     
     %% Extra calculations
     
@@ -203,17 +200,19 @@ function extra_data_analysis(model_sim,vehicle_data,Ts)
     idx_ay = Ay_ss > 3.3;
     ay_ss_idx = Ay_ss(idx_ay,:);
     
-    
+   
     % Slope --> m = dy/dx
-    oper_cond_lin = oper_cond(idx.time);
-    dalpha_lin = dalpha(idx.time);
-    Ay_ss_mod = Ay_ss(idx.time);
-    Kus_fit = diff(delta(:))./diff(Ay_ss(:));
+    Kus_fit = diff(dalpha(1:end*0.25))./diff(Ay_ss(1:end*0.25));
     Kus_fit(isinf(Kus_fit)|isnan(Kus_fit)) = 0;
     Kus_data = median(Kus_fit);
 
+    % Interpolation
+    p2 = polyfit(Ay_ss(1:ceil(end*0.25)),dalpha(1:ceil(end*0.25)),1);
+    disp(['From Handling Diagram ','KUS = ',num2str(p2(1))])
+
     
-    Kus_theor = -(m/L/tau_D) * ((Lf/Ks_r)-(Lr/Ks_f));
+    %Kus_theor = -(m/L/tau_D) * ((Lf/Ks_r)-(Lr/Ks_f));
+    Kus_theor = -m/(L^2)*(Lf/Ks_r - Lr/Ks_f);
 
     fprintf('Fitted data Kus = %f \n' , -Kus_data);
     fprintf('Theoretical Kus = %f \n' , Kus_theor);
@@ -265,28 +264,28 @@ function extra_data_analysis(model_sim,vehicle_data,Ts)
     hold on
     plot(Ay_ss , dFz_r_theor , 'LineWidth',2 , 'DisplayName','$\Delta F_{zr} Theory$' , 'LineStyle','--' )
     hold on
-    legend
+    legend(Location="best");
+    title("Lateral Load Transfer for Speed Ramp Test in Steady State")
     xlabel('$A_y$')
     ylabel('$\Delta F_{z}$')
-
-
 
 
     % -------------------------------
     %% Plot Axle Characteristics
     % -------------------------------
     figure('Name','Axle Characteristics')
-    plot(alpha_r_lin , mu_r_data , 'DisplayName' , 'Rear data' , 'LineWidth', 2 , 'Color', 'green' , 'LineStyle','-')
+    plot(alpha_r_lin , mu_r_data , 'DisplayName' , 'Rear data' , 'LineWidth', 2 , 'Color', 'blue' , 'LineStyle','-')
     hold on
-    plot(alpha_f_lin , mu_f_data , 'DisplayName' , 'Front data' , 'LineWidth', 2 , 'Color', 'red' , 'LineStyle','-')
+    plot(alpha_r_lin , mu_r_theor , 'DisplayName' , 'Rear theory' , 'LineWidth', 2 , 'Color', 'blue' , 'LineStyle','-.')
     hold on
-    plot(alpha_r_lin , mu_r_theor , 'DisplayName' , 'Rear theory' , 'LineWidth', 2 , 'Color', 'green' , 'LineStyle','-.')
+    plot(alpha_r_lin , mu_f_data , 'DisplayName' , 'Front data' , 'LineWidth', 2 , 'Color', 'red' , 'LineStyle','-')
     hold on
-    plot(alpha_f_lin , mu_f_theor , 'DisplayName' , 'Front theory' , 'LineWidth', 2 , 'Color', 'red' , 'LineStyle','--')
+    plot(alpha_r_lin , mu_f_theor , 'DisplayName' , 'Front theory' , 'LineWidth', 2 , 'Color', 'red' , 'LineStyle','--')
     hold on
     xlabel('$\alpha_{r},\alpha_{f}$')
     ylabel('$\mu_{f},\mu_{r}$')
-    legend
+    legend(Location = 'best')
+    title('Normalised Axle Characteristics')
     
     % -------------------------------
     %% Plot Handling dialgram
@@ -301,6 +300,7 @@ function extra_data_analysis(model_sim,vehicle_data,Ts)
     hold on
     ylabel('$\rho$L - $\delta$ = $\Delta \alpha$')
     xlabel('$\frac{A_{y}}{g}$')
+    xlim([0.001,0.6])
     legend 
 
     % -------------------------------

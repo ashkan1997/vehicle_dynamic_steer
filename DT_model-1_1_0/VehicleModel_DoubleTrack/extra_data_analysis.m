@@ -200,17 +200,20 @@ function extra_data_analysis(model_sim,vehicle_data,Ts)
     idx_ay = Ay_ss > 3.3;
     ay_ss_idx = Ay_ss(idx_ay,:);
     
+    dalpha = deg2rad(dalpha);
    
     % Slope --> m = dy/dx
-    oper_cond_lin = oper_cond(idx.time);
-    dalpha_lin = dalpha(idx.time);
-    Ay_ss_mod = Ay_ss(idx.time);
-    Kus_fit = diff(delta(:))./diff(Ay_ss(:));
+    Kus_fit = diff(dalpha(ceil(end*0.1):ceil(end*0.25)))./diff(Ay_ss(ceil(end*0.1):ceil(end*0.25)));
     Kus_fit(isinf(Kus_fit)|isnan(Kus_fit)) = 0;
-    Kus_data = median(Kus_fit);
+    Kus_data = mean(Kus_fit);
+
+    % Interpolation
+    p2 = polyfit(Ay_ss(ceil(end*0.1):ceil(end*0.25)),dalpha(ceil(end*0.1):ceil(end*0.25)),1);
+    disp(['Interpolated','Kus = ',num2str(-p2(1))])
 
     
-    Kus_theor = -(m/L/tau_D) * ((Lf/Ks_r)-(Lr/Ks_f));
+    %Kus_theor = -(m/L/tau_D) * ((Lf/Ks_r)-(Lr/Ks_f));
+    Kus_theor = -m/(L^2)*(Lf/Ks_r - Lr/Ks_f);
 
     fprintf('Fitted data Kus = %f \n' , -Kus_data);
     fprintf('Theoretical Kus = %f \n' , Kus_theor);
@@ -218,8 +221,13 @@ function extra_data_analysis(model_sim,vehicle_data,Ts)
     
     
     %% Yaw rate gain
+    
+    % First Def:
+    yaw_rate_gain_def1 = Omega./delta;
 
-    yaw_rate_gain = Omega./delta;
+    % Second Def:
+    yaw_rate_gain_def2 = u./(L*(1 + (-Kus_data) * u.^2));
+
 
    % In NS --> Kus = 0 --> Yaw_gain = u/L
     Omega_NS = u./L ;
@@ -292,14 +300,15 @@ function extra_data_analysis(model_sim,vehicle_data,Ts)
     % rho*L - delta = dAlpha --> delta --> vehicle steering angle [NOT DRIVER STEER ANGLE] 
     figure('Name','EXTRA Handling Diagram')
     
-    plot(Ay_ss/g , oper_cond , 'LineWidth', 2 , 'DisplayName', 'Operating condition');
+    plot(Ay_ss/g , -oper_cond , 'LineWidth', 2 , 'DisplayName', 'Operating condition');
     hold on
-    plot(Ay_ss/g , dalpha , 'LineWidth', 2, 'LineStyle','--' , 'DisplayName','$\Delta \alpha$')
+    plot(Ay_ss/g , -dalpha , 'LineWidth', 2, 'LineStyle','--' , 'DisplayName','$ - \Delta \alpha$')
     hold on
-    ylabel('$\rho$L - $\delta$ = $\Delta \alpha$')
+    ylabel('$\delta$ - $\rho$L')
     xlabel('$\frac{A_{y}}{g}$')
-    xlim([0.001,0.6])
-    legend 
+    xlim([0.01,0.6])
+    legend(Location = 'best');
+    title('Handling Diagram')
 
     % -------------------------------
     %% Plot dAlpha - Time
@@ -330,12 +339,14 @@ function extra_data_analysis(model_sim,vehicle_data,Ts)
     % -------------------------------
     
     figure('Name' , 'Yaw rate Gain')
-    plot(u , yaw_rate_gain , 'LineWidth', 2 , 'DisplayName','Data')
+    plot(u , yaw_rate_gain_def1 , 'LineWidth', 2 , 'DisplayName','$\frac{\Omega}{\delta}$')
     hold on
+    plot(u , yaw_rate_gain_def2 ,'LineStyle', '--' , 'LineWidth', 2 , 'DisplayName','$\frac{u}{L (1 + K_{us} u^2)}$')
     plot(u , Omega_NS  , 'Color','green' , 'LineWidth',2 , 'DisplayName', 'NS')
     xlabel('u [m/s]')
-    ylabel('$\frac{\Omega}{\rho}$')
-    legend
+    ylabel('Yaw Gain')
+    legend(Location='best')
+    title('Yaw Rate Gain')
 
 
     % -------------------------------
