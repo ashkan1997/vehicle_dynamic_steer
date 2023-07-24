@@ -414,11 +414,10 @@ function Axle_data_analysis(model_sim_Ks,vehicle_data,Ts , eps_Ks_init)
     end
    
    
-    ylabel('$\delta$ - $\rho$L = $ - \Delta \alpha$')
+    ylabel('$\delta$ - $\rho$L - = $\Delta \alpha$')
     xlabel('$\frac{A_{y}}{g}$')
-    xlim([0,0.7])
     legend(Location='best')
-    title('Handling diagrams for different front suspension stiffnesses ')
+    title('Handling diagrams for different suspension stiffness ')
     
 
 

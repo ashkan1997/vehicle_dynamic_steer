@@ -376,7 +376,7 @@ function extra_data_analysis(model_sim,vehicle_data,Ts)
     xlabel('u')
     ylabel('$\frac{\beta}{\delta}$')
     grid on
-    legend(Location = 'best')
+    legend(Location = 'northwest')
     title('Body Slip Gain')
 
     

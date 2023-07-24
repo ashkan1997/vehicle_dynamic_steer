@@ -651,10 +651,6 @@ function camber_data_analysis(model_sim_camber,vehicle_data,Ts , camber_ang)
     end
 
 
-    
-
-    %% Plot
-
     %% Plot handling diagram
     figure('Name','Camber angle Handling Diagram')
     cmap = jet(camber_ang*2 + 1);
@@ -667,14 +663,16 @@ function camber_data_analysis(model_sim_camber,vehicle_data,Ts , camber_ang)
             my_field = strcat('v',num2str(i));
         end
         
-        plot(Ay_ss.(my_field)/g , dalpha.(my_field) , 'LineWidth', 2 , 'DisplayName', ['$\gamma =$ ' ,num2str(i)] , 'Color',cmap(j , :));
+        plot(Ay_ss.(my_field)/g , -dalpha.(my_field) , 'LineWidth', 2 , 'DisplayName', ['$\gamma =$ ' ,num2str(i)] , 'Color',cmap(j , :));
         hold on
         j = j+1;
     end
    
    
-    ylabel('$\rho$L - $\delta$ = $\Delta \alpha$')
+    ylabel('$\delta$ - $\rho$L = $-\Delta \alpha$')
     xlabel('$\frac{A_{y}}{g}$')
-    legend 
+    xlim([0.05,0.7])
+    legend(Location = 'best') 
+    title('Handling diagram for different camber angles')
 
 end

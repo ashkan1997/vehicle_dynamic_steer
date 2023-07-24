@@ -651,10 +651,6 @@ function toe_data_analysis(model_sim_toe,vehicle_data,Ts , toe_ang)
     end
 
 
-    
-
-    %% Plot
-
     %% Plot handling diagram
     figure('Name','Toe angle Handling Diagram')
     cmap = jet(toe_ang*2 + 1);
@@ -665,14 +661,16 @@ function toe_data_analysis(model_sim_toe,vehicle_data,Ts , toe_ang)
         else
             my_field = strcat('v',num2str(i));
         end
-        plot(Ay_ss.(my_field)/g , dalpha.(my_field) , 'LineWidth', 2 , 'DisplayName', ['$\delta =$ ' ,num2str(i)] , 'Color',cmap(j,:));
+        plot(Ay_ss.(my_field)/g , -dalpha.(my_field) , 'LineWidth', 2 , 'DisplayName', ['$\delta =$ ' ,num2str(i)] , 'Color',cmap(j,:));
         hold on
         j = j+1;
     end
    
    
-    ylabel('$\rho$L - $\delta$ = $\Delta \alpha$')
+    ylabel('$\delta$ - $\rho$L = $-\Delta \alpha$')
     xlabel('$\frac{A_{y}}{g}$')
-    legend 
+    xlim([0,0.7])
+    legend(Location='best')
+    title('Handling diagram for different toe angles')
 
 end

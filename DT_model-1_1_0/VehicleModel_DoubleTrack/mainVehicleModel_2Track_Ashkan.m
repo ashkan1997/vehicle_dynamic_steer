@@ -20,7 +20,7 @@ initialize_environment;
 % ----------------------------
 %% TEST SELECTION
 % ----------------------------
-flag.test = 0;      % 1 --> STEER ramp test
+flag.test = 1;      % 1 --> STEER ramp test
                     % 0 --> SPEED ramp test
 % ----------------------------
 %% Load vehicle data
@@ -132,14 +132,15 @@ dataAnalysis(model_sim,vehicle_data,Ts);
 extra_data_analysis(model_sim,vehicle_data,Ts);
 
 %% Camber Data Analysis
+
 camber_data_analysis(model_sim_camber , vehicle_data , Ts , camber_ang);
 
 %% Axle Stiffness Data Analysis
 Axle_data_analysis(model_sim_Ks,vehicle_data,Ts,eps_Ks_init);
 
 %% Toe angle Data Analysis
-toe_data_analysis(model_sim_toe,vehicle_data,Ts , toe_ang)
 
+toe_data_analysis(model_sim_toe,vehicle_data,Ts , toe_ang)
 
 %% Save Figures
 save_fig(flag.test);
