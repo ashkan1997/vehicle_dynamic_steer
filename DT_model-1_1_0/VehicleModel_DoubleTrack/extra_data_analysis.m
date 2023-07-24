@@ -241,10 +241,13 @@ function extra_data_analysis(model_sim,vehicle_data,Ts)
     %% Body slip gain
 
     beta_gain = beta./delta;
-    idx.u_beta = u>4;
-    u_beta = u(idx.u_beta);
+    
+    % B/d = Lr/L - (ar*Lf + af*Lr)/L*d
+    % But for NS => Dalpha = Da = 0 so subs Da = ar - af => ar = Da + af
+    % Solving we get B/d = Lr/L - af/d
 
-  
+    beta_gain_neurtal = Lr / L - deg2rad(alpha_f)./delta;
+    
     % -------------------------------
     %% Plot Lateral load transfer (t)
     % -------------------------------
@@ -369,10 +372,12 @@ function extra_data_analysis(model_sim,vehicle_data,Ts)
     figure('Name' , 'Body slip gain')
     plot(u , beta_gain , 'LineWidth',2 , 'DisplayName','Data')
     hold on
-
+    plot(u , beta_gain_neurtal , 'LineWidth',2 , 'DisplayName','NS')
     xlabel('u')
     ylabel('$\frac{\beta}{\delta}$')
     grid on
+    legend(Location = 'best')
+    title('Body Slip Gain')
 
     
 
